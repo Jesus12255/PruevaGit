@@ -1,0 +1,224 @@
+
+package baseDeDatos;
+
+import logica.Administrador;
+import logica.Cliente;
+import logica.Compra;
+import logica.Productos;
+import logica.Proveedor;
+import logica.Usuario;
+
+
+
+public class simuladorBaseDeDatos {
+    
+    //atributos
+    private Administrador administradorUnico; 
+    
+    private Cliente[] clientes; 
+    private int contClientes; 
+    
+    private Compra[] compras; 
+    private int contCompras; 
+    
+    private Productos[] productos;
+    private int contProductos; 
+    
+    private Proveedor[] proveedores; 
+    private int contProveedores;
+    
+    private Usuario[] usuarios; 
+    private int contUsuarios; 
+    
+    //constructores
+
+    public simuladorBaseDeDatos() {
+        this.clientes = new Cliente[2]; 
+        this.compras = new Compra[2]; 
+        this.productos = new Productos[2]; 
+        this.proveedores = new Proveedor[2]; 
+        this.usuarios = new Usuario[2]; 
+        
+        this.contClientes = 0; 
+        this.contCompras = 0; 
+        this.contProductos = 0; 
+        this.contProveedores = 0; 
+        this.contUsuarios = 0; 
+        
+    }
+
+
+    //get y set 
+
+    public Administrador getAdministradorUnico() {
+      
+        return administradorUnico;
+    }
+
+    public void setAdministradorUnico(Administrador administradorUnico) {
+        this.administradorUnico = administradorUnico;
+    }
+
+    public Cliente[] getClientes() {
+        return clientes;
+    }
+
+    public void setClientes(Cliente[] clientes) {
+        this.clientes = clientes;
+    }
+    
+    public void setCliente(Cliente client){
+        this.clientes[contClientes] = client;
+        contClientes++; 
+    }
+    
+    public int getContClientes() {
+        return contClientes;
+    }
+    
+    
+    
+    public void setContClientes(int contClientes) {
+        this.contClientes = contClientes;
+    }
+
+    public Compra[] getCompras() {
+        return compras;
+    }
+
+    public void setCompras(Compra[] compras) {
+        this.compras = compras;
+    }
+
+    public int getContCompras() {
+        return contCompras;
+    }
+
+    public void setContCompras(int contCompras) {
+        this.contCompras = contCompras;
+    }
+
+    public Productos[] getProductos() {
+        return productos;
+    }
+
+    public void setProductos(Productos[] productos) {
+        this.productos = productos;
+    }
+
+    public int getContProductos() {
+        return contProductos;
+    }
+
+    public void setContProductos(int contProductos) {
+        this.contProductos = contProductos;
+    }
+
+    public Proveedor[] getProveedores() {
+        return proveedores;
+    }
+
+    public void setProveedores(Proveedor[] proveedores) {
+        this.proveedores = proveedores;
+    }
+
+    public int getContProveedores() {
+        return contProveedores;
+    }
+
+    public void setContProveedores(int contProveedores) {
+        this.contProveedores = contProveedores;
+    }
+
+    public Usuario[] getUsuarios() {
+        return usuarios;
+    }
+
+    public void setUsuarios(Usuario[] usuarios) {
+        this.usuarios = usuarios;
+    }
+    
+    public void guardaUsuario(Usuario usu){
+        
+        usuarios[contUsuarios] = usu;
+        contUsuarios++; 
+    }
+    
+    public int getContUsuarios() {
+        return contUsuarios;
+    }
+
+    public Usuario traeUsuario(int indice){
+        return usuarios[indice]; 
+    }
+    
+    public void setContUsuarios(int contUsuarios) {
+        this.contUsuarios = contUsuarios;
+    }
+    
+    //metodos
+    public void siArrayClientesLlena(){
+    
+        Cliente[] auxCliente = clientes;
+        clientes = new Cliente[contClientes+2]; 
+        for (int i = 0; i < contClientes; i++) {
+            clientes[i] = auxCliente[i]; 
+        }
+        auxCliente = null; 
+    }
+    
+    public void siArrayComprasLlena() {
+        
+        Compra[] auxCompra = compras;
+        compras = new Compra[contCompras + 2];
+        for (int i = 0; i < contCompras; i++) {
+
+            compras[i] = auxCompra[i];
+
+        }
+
+        auxCompra = null;
+    }
+ 
+    public void siArrayProductosLlena() {
+        
+        Productos[] auxProductos = productos;
+        productos = new Productos[contProductos + 2];
+        for (int i = 0; i < contProductos; i++) {
+
+            productos[i] = auxProductos[i];
+
+        }
+
+        auxProductos = null;
+    }
+    
+    public void siArrayProveedoresLlena() {
+        
+        Proveedor[] auxProveedor = proveedores;
+        proveedores = new Proveedor[contProveedores + 2];
+
+        for (int i = 0; i < contProveedores; i++) {
+
+            proveedores[i] = auxProveedor[i];
+
+        }
+
+        auxProveedor = null;
+    }
+    
+    public void siArrayUsuariosLlena() {
+        
+        int tamaño = usuarios.length; 
+
+        Usuario[] auxUsuario = usuarios;
+        usuarios = new Usuario[tamaño + 2];
+        for (int i = 0; i < tamaño; i++) {
+
+            usuarios[i] = auxUsuario[i];
+
+        }
+
+        auxUsuario = null;
+    }
+}
