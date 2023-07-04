@@ -1,9 +1,10 @@
 
 package Vista;
 import biblioteca.LE; 
-
-import java.util.ResourceBundle;
 import logica.Administrador;
+
+
+import logica.Cliente;
 import logica.Controlador;
 import logica.Usuario;
 
@@ -24,7 +25,7 @@ public class Login {
         String  msj = """
                         <<<< TIPO USUARIO  >>>
                       [1] Cliente
-                      [2] Administrador
+                      [2] Aministrador
                       [3] Salir
                       ------------------
                       Elija una opcion
@@ -49,14 +50,195 @@ public class Login {
         } while (op != 3);
     }
     
+    
+    
+    //apartado Cliente
+    
+    public void loginCliente() {
+
+       
+        int opc = 0;
+
+        String msj = """
+                        <<<< LOGIN  CLIENTE>>>
+                      [1] Iniciar sesion
+                      [2] Registrarse
+                      [3] Volver
+                      ------------------
+                      Elija una opcion
+                   """;
+
+        do {
+            opc = LE.leerInt(msj);
+            switch (opc) {
+                case 1:
+                    if (controladora.traeContUsuarios() != 0) {
+                        iniciasesionCliente();
+                    }else{
+                        LE.mostrarAdvertencia("Aún no hay usuarios registrados");
+                    }
+                    
+                    break; 
+                case 2:
+
+                    registrarseCliente();
+                    break; 
+                case 3:
+
+                   
+                    break;
+
+                default:
+                    LE.mostrarAdvertencia("opcion invalida, vueva a ingresar");
+
+            }
+
+        } while (opc != 3);
+
+    }
+
+    private void iniciasesionCliente() {
+        
+        boolean incorrecto;  
+        String nombreBuscar; 
+        String contraseniaBuscar; 
+        do {            
+            incorrecto = true; 
+            nombreBuscar = LE.leerString("Ingrese el nombre de usuario"); 
+            contraseniaBuscar = LE.leerString("Ingrese contraseña");
+            
+            
+            for (int i = 0; i < controladora.traeContUsuarios(); i++) {
+                
+                String nombreAlmacenado = controladora.traeUsuarioControlador(i).getNombreUsuario();
+                String contrasenniaAlmacenada = controladora.traeUsuarioControlador(i).getContraseña(); 
+                
+                if (nombreAlmacenado.equals(nombreBuscar) && contrasenniaAlmacenada.equals(contraseniaBuscar)) {
+                    incorrecto = false; 
+                    principalCliente();
+                } else {
+                    LE.mostrarAdvertencia("Nombre de usuario o contraseña incorrectos");
+                }
+                
+            }
+        } while (incorrecto);
+
+    }
+    
+    private String validarNombreUsuClienteInicioSesion() {
+
+        Usuario[] usuarios = controladora.traeUsuarios();
+        String nombreUsuarioRegistrar;
+        int existe = -1;
+        do {
+            nombreUsuarioRegistrar = LE.leerString("Ingrese el nombre de usuario");
+
+            for (int i = 0; i < controladora.traeContUsuarios(); i++) {
+
+                if (usuarios[i].getNombreUsuario().equals(nombreUsuarioRegistrar)) {
+                    existe = i;
+                    break;
+                }
+            }
+
+            if (existe != -1) {
+                LE.mostrarAdvertencia("El nombre de usuario ya existe, vuelva a ingresar");
+            } else {
+                LE.mostrarInformacion("nombre de usuario valido");
+            }
+
+        } while (existe != -1);
+
+        return nombreUsuarioRegistrar;
+    }
+
+    
+    private void principalCliente(){
+    //pagina principal de cliente
+    }
+
+    private void registrarseCliente() {
+
+        String nombre, apellido;
+        long codCliente = controladora.traeContCliente();
+
+        LE.mostrarInformacion("Registrando nuevo cuenta de Cliente");
+
+        nombre = LE.leerString("Ingrese el nombre");
+        apellido = LE.leerString("Ingrese el apellido");
+
+        //tipo de usuario
+        String nombreUsuario, contraseniaUsu;
+        String rol = "Cliente";
+        long codUsuario = controladora.traeContUsuarios();
+
+        nombreUsuario = validarNombreUsuClienteRegistro(); 
+        contraseniaUsu = LE.leerString("Ingrese la contraseña");
+        
+
+        Usuario usu = new Usuario(codUsuario, nombreUsuario, contraseniaUsu, rol);
+        Cliente clien = new Cliente(codCliente,0, usu, nombre, apellido); 
+        
+        controladora.creaUsuario(usu); 
+        controladora.creaCliente(clien);
+    }
+
+    
+    private String validarNombreUsuClienteRegistro(){
+        
+      
+        Usuario[] usuarios = controladora.traeUsuarios();
+        String nombreUsuarioRegistrar; 
+        int existe = -1; 
+        do {    
+            nombreUsuarioRegistrar = LE.leerString("Ingrese el nombre de usuario"); 
+            
+            for (int i = 0; i < controladora.traeContUsuarios(); i++) {
+
+                if (usuarios[i].getNombreUsuario().equals(nombreUsuarioRegistrar)) {
+                    existe = i; 
+                    break;
+                }
+            }
+            
+            if (existe != -1) {
+                LE.mostrarAdvertencia("El nombre de usuario ya existe, vuelva a ingresar");
+            }else{
+                LE.mostrarInformacion("nombre de usuario valido");
+            }
+            
+        } while (existe != -1);
+        
+        return nombreUsuarioRegistrar; 
+    }
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    //apartado Administrador
+    
     public void loginAdministrador(){
         
         String  msj = """
-                        <<<< LOGIN  >>>
+                        <<<< LOGIN  ADMINISTRADOR >>>
                       [1] Iniciar sesion
-                      [2] Registrarse
-                      [3] Mostrar datos de administrador
-                      [4] Modificar datos de administrador
+                      [2] Registrarse 
+                      [3] Mostrar datos 
+                      [4] Modificar datos 
                       [5] Volver
                       ------------------
                       Elija una opcion
@@ -66,13 +248,12 @@ public class Login {
             op = LE.leerInt(msj); 
             
             switch (op) {
+
                 case 1:
+
                     if (detectaRegistroAdminUnico != 0) {
-                        
                         iniciasesionAdministrador(); 
-                        
                     }else{
-                    
                         LE.mostrarAdvertencia("El administrador aun no se encuentra registrado");
                     }
                     
@@ -80,23 +261,29 @@ public class Login {
                     
                     
                 case 2:
-                    registrarseAdministrador();
-                    break;
                     
-                    
-                case 3:
-                    if (detectaRegistroAdminUnico != 0) {
-                        
-                        mostrarDatosAdministrador(); 
-                        
+                    if (detectaRegistroAdminUnico < 1) {
+                        registrarseAdministrador();
+                        detectaRegistroAdminUnico++;
                     }else{
-                    
+                        LE.mostrarAdvertencia("Ya no se pueden registrar mas administradores");
+                    }
+
+                    break;
+                case 3:
+                    if (detectaRegistroAdminUnico != 0) {                        
+                        mostrarDatosAdministrador(); 
+                    }else{
                         LE.mostrarAdvertencia("El administrador aun no se encuentra registrado");
                     }
                     
                     break;
                 case 4:
-                    
+                    if (detectaRegistroAdminUnico != 0) {                        
+                        //modificar daros del administrador
+                    }else{
+                        LE.mostrarAdvertencia("El administrador aun no se encuentra registrado");
+                    }
                     break;
                 case 5:
                     
@@ -104,7 +291,7 @@ public class Login {
                 default:
                     LE.mostrarAdvertencia("opcion invalida, vueva a ingresar");
             }
-        } while (op != 4);
+        } while (op != 5);
                 
         
     
@@ -114,11 +301,12 @@ public class Login {
         String nombreBuscar = LE.leerString("Ingrese el nombre de usuario"); 
         String contraseniaBuscar =  LE.leerString("Ingrese contraseña"); 
         
+        
         String nombreAlmacenado = controladora.obtenerAdmin().getUsu().getNombreUsuario(); 
-        String contrasenniaAlmacenada = controladora.obtenerAdmin().getUsu().getContraseña(); 
+        String contraseniaAlmacenada = controladora.obtenerAdmin().getUsu().getContraseña(); 
         
      
-        if (nombreAlmacenado.equals(nombreBuscar) && contraseniaBuscar.equals(contraseniaBuscar)) {
+        if (nombreAlmacenado.equals(nombreBuscar) && contraseniaAlmacenada.equals(contraseniaBuscar)) {
             menuAdministrador(); 
         }else{
             LE.mostrarAdvertencia("Nombre de usuario o contraseña incorrecotos");
@@ -163,102 +351,15 @@ public class Login {
         
     }
 
-public void loginCliente(){
-
-boolean seguir = false;  
-int opc = 0; 
-
-        String  msj = """
-                        <<<< LOGIN  >>>
-                      [1] Iniciar sesion
-                      [2] Registrarse
-                      [3] Volver
-                      ------------------
-                      Elija una opcion
-                   """;
-
-do{ 
-
-opc = LE.leerInt(msj); 
-
-switch(opc){
-case 1: 
-
-iniciarsesionCliente(); 
-
-case 2: 
-
-registrarseCliente(); 
-
-
-case 3: 
-
-seguir = false; 
-break;
-
-default: 
- LE.mostrarAdvertencia("opcion invalida, vueva a ingresar");
-
-
-}
-
-
-}while(!seguir); 
-
-
-}
-
-    private void iniciasesionCliente() {
-        String nombreBuscar = LE.leerString("Ingrese el nombre de usuario"); 
-        String contraseniaBuscar =  LE.leerString("Ingrese contraseña"); 
+    private void modificaDatosAdministrador(){
         
-        String nombreAlmacenado = controladora.obtenerCliente().getUsu().getNombreUsuario(); 
-        String contrasenniaAlmacenada = controladora.obtenerCliente().getUsu().getContraseña(); 
         
-     
-        if (nombreAlmacenado.equals(nombreBuscar) && contraseniaBuscar.equals(contraseniaBuscar)) {
-            loginCliente(); 
-        }else{
-            LE.mostrarAdvertencia("Nombre de usuario o contraseña incorrectos");
-        }
-
-
-}
-
-private void registrarseCliente(){ 
-
-     String nombre, apellido; 
-        long codCliente = 0; 
-        
-        LE.mostrarInformacion("Creando cuenta de administrador unico");
-        
-        nombre = LE.leerString("Ingrese el nombre"); 
-        apellido = LE.leerString("Ingrese el apellido");
-        
-        //tipo de usuario
-        
-        String nombreUsuario, contraseniaUsu; 
-        String rol= "Cliente"; 
-        long codUsuario = 0; 
-
-        nombreUsuario = LE.leerString("Ingrese el nombre de usuario");
-        contraseniaUsu = LE.leerString("Ingrese la contraseña");
+    }
     
-        Usuario usu = new Usuario(codUsuario, nombreUsuario, contraseniaUsu, rol); 
-        Cliente clien= new Cliente(codCliente, usu, nombre, apellido); 
-        
-        controladora.creaCliente(clien);
-    }
-
-    public void mostrarDatosAdministrador(){
-        LE.mostrarInformacion(controladora.obtenerCliente( ).toString());
-        
-    }
-
-
+    
+    
 
 }
-
 
 
 
