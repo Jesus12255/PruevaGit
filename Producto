@@ -10,6 +10,7 @@ public class Productos {
     private String nombre; 
     private int stock; 
     private String fechaLanzamiento; 
+    private double precio; 
     
     //un producto solo puede tener un proveedor
     private Proveedor proveedor; 
@@ -21,15 +22,17 @@ public class Productos {
     public Productos() {
     }
 
-    public Productos(long codigo, String nombre, int stock, String fechaLanzamiento, Proveedor proveedor, Compra[] compras) {
+    public Productos(long codigo, String nombre, int stock, String fechaLanzamiento, double precio, Proveedor proveedor, Compra[] compras) {
         this.codigo = codigo;
         this.nombre = nombre;
         this.stock = stock;
         this.fechaLanzamiento = fechaLanzamiento;
+        this.precio = precio;
         this.proveedor = proveedor;
         this.compras = compras;
     }
 
+    
     
 
     //set y get
@@ -80,6 +83,15 @@ public class Productos {
     public void setCompras(Compra[] compras) {
         this.compras = compras;
     }
+
+    public double getPrecio() {
+        return precio;
+    }
+
+    public void setPrecio(double precio) {
+        this.precio = precio;
+    }
+    
     
     
 }
