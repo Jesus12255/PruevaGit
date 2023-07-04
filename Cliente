@@ -1,0 +1,57 @@
+
+package logica;
+
+//relacion 1 a 1 con Usuario
+
+public class Cliente  extends Persona{
+    
+    //atributos
+    private long codCliente; 
+    private double saldo;
+    
+    //un cliente está asociado a us usuario
+    Usuario usu; 
+
+    
+    //constructores
+    public Cliente() {
+    }
+
+    public Cliente(long codCliente, double saldo, Usuario usu, String nombre, String apellido) {
+        super(nombre, apellido);
+        this.codCliente = codCliente;
+        this.saldo = saldo;
+        this.usu = usu;
+    }
+
+ 
+    
+    //geters y serters
+
+    public long getCodCliente() {
+        return codCliente;
+    }
+
+    public void setCodCliente(long codCliente) {
+        this.codCliente = codCliente;
+    }
+
+    public double getSaldo() {
+        return saldo;
+    }
+
+    public void setSaldo(double saldo) {
+        this.saldo = saldo;
+    }
+
+    public Usuario getUsu() {
+        return usu;
+    }
+
+    public void setUsu(Usuario usu) {
+        this.usu = usu;
+    }
+
+
+    
+}
