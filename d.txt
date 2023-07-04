@@ -24,7 +24,7 @@ public class Login {
         String  msj = """
                         <<<< TIPO USUARIO  >>>
                       [1] Cliente
-                      [2] Aministrador
+                      [2] Administrador
                       [3] Salir
                       ------------------
                       Elija una opcion
@@ -35,7 +35,7 @@ public class Login {
             
             switch (op) {
                 case 1:
-                    
+                    loginCliente(); 
                     break;
                 case 2:
                     loginAdministrador();
@@ -162,6 +162,107 @@ public class Login {
         LE.mostrarInformacion(controladora.obtenerAdmin( ).toString());
         
     }
+
+public void loginCliente(){
+
+boolean seguir = false;  
+int opc = 0; 
+
+        String  msj = """
+                        <<<< LOGIN  >>>
+                      [1] Iniciar sesion
+                      [2] Registrarse
+                      [3] Volver
+                      ------------------
+                      Elija una opcion
+                   """;
+
+do{ 
+
+opc = LE.leerInt(msj); 
+
+
+switch(opc){
+case 1: 
+
+iniciarsesionCliente(); 
+
+case 2: 
+
+registrarseCliente(); 
+
+
+case 3: 
+
+seguir = false; 
+break; 
+
+
+}
+
+
+}while(!seguir); 
+
+
+
+}
+
+    private void iniciasesionCliente() {
+        String nombreBuscar = LE.leerString("Ingrese el nombre de usuario"); 
+        String contraseniaBuscar =  LE.leerString("Ingrese contraseña"); 
+        
+        String nombreAlmacenado = controladora.obtenerAdmin().getUsu().getNombreUsuario(); 
+        String contrasenniaAlmacenada = controladora.obtenerAdmin().getUsu().getContraseña(); 
+        
+     
+        if (nombreAlmacenado.equals(nombreBuscar) && contraseniaBuscar.equals(contraseniaBuscar)) {
+            menuAdministrador(); 
+        }else{
+            LE.mostrarAdvertencia("Nombre de usuario o contraseña incorrecotos");
+        }
+
+
+
+
+}
+
+private void registrarseCliente(){ 
+
+     String nombre, apellido, numDNI, fechaNacimiento; 
+        long codAdmin = 0; 
+        
+        LE.mostrarInformacion("Creando cuenta de administrador unico");
+        
+        nombre = LE.leerString("Ingrese el nombre"); 
+        apellido = LE.leerString("Ingrese el apellido"); 
+        numDNI = LE.leerString("Ingrese el numero de DNI"); 
+        fechaNacimiento = LE.leerString("Ingrese la fecha de nacimiento"); 
+        
+        //tipo de usuario
+        
+        String nombreUsuario, contraseniaUsu; 
+        String  rol= "Administrador"; 
+        long codUsuario = 0; 
+
+        nombreUsuario = LE.leerString("Ingrese el nombre de ususario");
+        contraseniaUsu = LE.leerString("Ingrese la contraseña");
+    
+        Usuario usu = new Usuario(codUsuario, nombreUsuario, contraseniaUsu, rol); 
+        Administrador  admin= new Administrador(codAdmin, numDNI, fechaNacimiento, usu, nombre, apellido); 
+        
+        controladora.creaAdmin(admin);
+    }
+
+    public void mostrarDatosAdministrador(){
+        LE.mostrarInformacion(controladora.obtenerAdmin( ).toString());
+        
+    }
+
+
+
+}
+
+
 
 
 }
