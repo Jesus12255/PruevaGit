@@ -1,0 +1,74 @@
+
+package logica;
+
+//relacion 1 a N con cliente
+
+import logica.Cliente;
+
+//relacion N a 1 con producto
+public class Compra {
+    
+    //atributos
+    private long codCompra; 
+    private String fechaCompra; 
+    private int cantProducto; 
+    //como en una compra tan solo puede haber un cliente
+    Cliente cliente; 
+    //como en una compra pueden haber muchos productos
+    Productos[] productos; 
+    
+    //constructores
+    public Compra() {
+    }
+    
+    public Compra(long codCompra, String fechaCompra, int cantProducto, Cliente cliente, Productos[] productos) {
+        this.codCompra = codCompra;
+        this.fechaCompra = fechaCompra;
+        this.cantProducto = cantProducto;
+        this.cliente = cliente;
+        this.productos = productos;
+    }
+    
+    //getters y setters 
+    public long getCodCompra() {
+        return codCompra;
+    }
+
+    public void setCodCompra(long codCompra) {
+        this.codCompra = codCompra;
+    }
+
+    public String getFechaCompra() {
+        return fechaCompra;
+    }
+
+    public void setFechaCompra(String fechaCompra) {
+        this.fechaCompra = fechaCompra;
+    }
+
+    public int getCantProducto() {
+        return cantProducto;
+    }
+
+    public void setCantProducto(int cantProducto) {
+        this.cantProducto = cantProducto;
+    }
+
+    public Cliente getCliente() {
+        return cliente;
+    }
+
+    public void setCliente(Cliente cliente) {
+        this.cliente = cliente;
+    }
+
+    public Productos[] getProductos() {
+        return productos;
+    }
+
+    public void setProductos(Productos[] productos) {
+        this.productos = productos;
+    }
+    
+    
+}
