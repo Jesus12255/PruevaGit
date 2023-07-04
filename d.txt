@@ -212,14 +212,14 @@ default:
         String nombreBuscar = LE.leerString("Ingrese el nombre de usuario"); 
         String contraseniaBuscar =  LE.leerString("Ingrese contraseña"); 
         
-        String nombreAlmacenado = controladora.obtenerAdmin().getUsu().getNombreUsuario(); 
-        String contrasenniaAlmacenada = controladora.obtenerAdmin().getUsu().getContraseña(); 
+        String nombreAlmacenado = controladora.obtenerCliente().getUsu().getNombreUsuario(); 
+        String contrasenniaAlmacenada = controladora.obtenerCliente().getUsu().getContraseña(); 
         
      
         if (nombreAlmacenado.equals(nombreBuscar) && contraseniaBuscar.equals(contraseniaBuscar)) {
-            menuAdministrador(); 
+            loginCliente(); 
         }else{
-            LE.mostrarAdvertencia("Nombre de usuario o contraseña incorrecotos");
+            LE.mostrarAdvertencia("Nombre de usuario o contraseña incorrectos");
         }
 
 
@@ -227,33 +227,31 @@ default:
 
 private void registrarseCliente(){ 
 
-     String nombre, apellido, numDNI, fechaNacimiento; 
-        long codAdmin = 0; 
+     String nombre, apellido; 
+        long codCliente = 0; 
         
         LE.mostrarInformacion("Creando cuenta de administrador unico");
         
         nombre = LE.leerString("Ingrese el nombre"); 
-        apellido = LE.leerString("Ingrese el apellido"); 
-        numDNI = LE.leerString("Ingrese el numero de DNI"); 
-        fechaNacimiento = LE.leerString("Ingrese la fecha de nacimiento"); 
+        apellido = LE.leerString("Ingrese el apellido");
         
         //tipo de usuario
         
         String nombreUsuario, contraseniaUsu; 
-        String  rol= "Administrador"; 
+        String rol= "Cliente"; 
         long codUsuario = 0; 
 
-        nombreUsuario = LE.leerString("Ingrese el nombre de ususario");
+        nombreUsuario = LE.leerString("Ingrese el nombre de usuario");
         contraseniaUsu = LE.leerString("Ingrese la contraseña");
     
         Usuario usu = new Usuario(codUsuario, nombreUsuario, contraseniaUsu, rol); 
-        Administrador  admin= new Administrador(codAdmin, numDNI, fechaNacimiento, usu, nombre, apellido); 
+        Cliente clien= new Cliente(codCliente, usu, nombre, apellido); 
         
-        controladora.creaAdmin(admin);
+        controladora.creaCliente(clien);
     }
 
     public void mostrarDatosAdministrador(){
-        LE.mostrarInformacion(controladora.obtenerAdmin( ).toString());
+        LE.mostrarInformacion(controladora.obtenerCliente( ).toString());
         
     }
 
