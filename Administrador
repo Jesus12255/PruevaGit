@@ -1,0 +1,69 @@
+
+package logica;
+
+//relacion 1 a 1 Usuario
+
+public class Administrador  extends Persona{
+    
+    private long codAdmin;
+    private String numDNI; 
+    private String fechaNacimiento; 
+    //un administrador esta asociado a un usuario
+    Usuario usu; 
+    
+    //constructores
+    public Administrador() {
+    }
+
+    public Administrador(long codAdmin, String numDNI, String fechaNacimiento, Usuario usu, String nombre, String apellido) {
+        super(nombre, apellido);
+        this.codAdmin = codAdmin;
+        this.numDNI = numDNI;
+        this.fechaNacimiento = fechaNacimiento;
+        this.usu = usu;
+    }
+
+    
+    //geters y setters
+    public long getCodAdmin() {
+        return codAdmin;
+    }
+
+    public void setCodAdmin(long codAdmin) {
+        this.codAdmin = codAdmin;
+    }
+
+    public String getNumDNI() {
+        return numDNI;
+    }
+
+    public void setNumDNI(String numDNI) {
+        this.numDNI = numDNI;
+    }
+
+    public String getFechaNacimiento() {
+        return fechaNacimiento;
+    }
+
+    public void setFechaNacimiento(String fechaNacimiento) {
+        this.fechaNacimiento = fechaNacimiento;
+    }
+
+    public Usuario getUsu() {
+        return usu;
+    }
+
+    public void setUsu(Usuario usu) {
+        this.usu = usu;
+    }
+
+    @Override
+    public String toString() {
+        return  "CODIGO: " + codAdmin + "    NUMERO DNI: "+numDNI + "   FECHA DE NAC: " + fechaNacimiento +  "   TIPO USUARIO: " + usu.getRol() ; 
+    }
+    
+    
+    
+    
+    
+}
