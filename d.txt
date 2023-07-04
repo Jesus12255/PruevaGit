@@ -1,1 +1,167 @@
-tunomeetecabrasaramambiche
+
+package Vista;
+import biblioteca.LE; 
+
+import java.util.ResourceBundle;
+import logica.Administrador;
+import logica.Controlador;
+import logica.Usuario;
+
+
+public class Login {
+    
+    Controlador controladora; 
+    int detectaRegistroAdminUnico; 
+    
+    public Login(){
+        controladora = new Controlador(); 
+        detectaRegistroAdminUnico = 0; 
+    }
+    
+    
+    public void loginPrincipal(){
+    
+        String  msj = """
+                        <<<< TIPO USUARIO  >>>
+                      [1] Cliente
+                      [2] Aministrador
+                      [3] Salir
+                      ------------------
+                      Elija una opcion
+                   """;
+        int op;
+        do {            
+            op = LE.leerInt(msj); 
+            
+            switch (op) {
+                case 1:
+                    
+                    break;
+                case 2:
+                    loginAdministrador();
+                    break;
+                case 3:
+                    
+                    break;
+                default:
+                    LE.mostrarAdvertencia("opcion invalida, vueva a ingresar");
+            }
+        } while (op != 3);
+    }
+    
+    public void loginAdministrador(){
+        
+        String  msj = """
+                        <<<< LOGIN  >>>
+                      [1] Iniciar sesion
+                      [2] Registrarse
+                      [3] Mostrar datos de administrador
+                      [4] Modificar datos de administrador
+                      [5] Volver
+                      ------------------
+                      Elija una opcion
+                   """;
+        int op;
+        do {            
+            op = LE.leerInt(msj); 
+            
+            switch (op) {
+                case 1:
+                    if (detectaRegistroAdminUnico != 0) {
+                        
+                        iniciasesionAdministrador(); 
+                        
+                    }else{
+                    
+                        LE.mostrarAdvertencia("El administrador aun no se encuentra registrado");
+                    }
+                    
+                    break;
+                    
+                    
+                case 2:
+                    registrarseAdministrador();
+                    break;
+                    
+                    
+                case 3:
+                    if (detectaRegistroAdminUnico != 0) {
+                        
+                        mostrarDatosAdministrador(); 
+                        
+                    }else{
+                    
+                        LE.mostrarAdvertencia("El administrador aun no se encuentra registrado");
+                    }
+                    
+                    break;
+                case 4:
+                    
+                    break;
+                case 5:
+                    
+                    break;
+                default:
+                    LE.mostrarAdvertencia("opcion invalida, vueva a ingresar");
+            }
+        } while (op != 4);
+                
+        
+    
+    }
+    
+    private void iniciasesionAdministrador() {
+        String nombreBuscar = LE.leerString("Ingrese el nombre de usuario"); 
+        String contraseniaBuscar =  LE.leerString("Ingrese contraseña"); 
+        
+        String nombreAlmacenado = controladora.obtenerAdmin().getUsu().getNombreUsuario(); 
+        String contrasenniaAlmacenada = controladora.obtenerAdmin().getUsu().getContraseña(); 
+        
+     
+        if (nombreAlmacenado.equals(nombreBuscar) && contraseniaBuscar.equals(contraseniaBuscar)) {
+            menuAdministrador(); 
+        }else{
+            LE.mostrarAdvertencia("Nombre de usuario o contraseña incorrecotos");
+        }
+        
+        
+        
+    }
+    
+    private void menuAdministrador() {
+    }
+
+    private void registrarseAdministrador() {
+        
+        String nombre, apellido, numDNI, fechaNacimiento; 
+        long codAdmin = 0; 
+        
+        LE.mostrarInformacion("Creando cuenta de administrador unico");
+        
+        nombre = LE.leerString("Ingrese el nombre"); 
+        apellido = LE.leerString("Ingrese el apellido"); 
+        numDNI = LE.leerString("Ingrese el numero de DNI"); 
+        fechaNacimiento = LE.leerString("Ingrese la fecha de nacimiento"); 
+        
+        //tipo de usuario
+        
+        String nombreUsuario, contraseniaUsu; 
+        String  rol= "Administrador"; 
+        long codUsuario = 0; 
+
+        nombreUsuario = LE.leerString("Ingrese el nombre de ususario");
+        contraseniaUsu = LE.leerString("Ingrese la contraseña");
+    
+        Usuario usu = new Usuario(codUsuario, nombreUsuario, contraseniaUsu, rol); 
+        Administrador  admin= new Administrador(codAdmin, numDNI, fechaNacimiento, usu, nombre, apellido); 
+        
+        controladora.creaAdmin(admin);
+    }
+
+    public void mostrarDatosAdministrador(){
+        LE.mostrarInformacion(controladora.obtenerAdmin( ).toString());
+        
+    }
+
+
+}
