@@ -264,6 +264,223 @@ public class Login {
 
     }
 
+public void comprarJuego() {
+
+  
+        String inv = "";
+
+        long buscar = 0;
+
+Productos codP = new Productos(); 
+Proveedor prov = new Proveedor(); 
+simuladorBaseDeDatos BD = new simuladorBaseDeDatos(); 
+
+
+        if (getcontProductos == 0) {
+            LE.mostrarAdvertencia("No hay productos en stock");
+
+        } else {
+
+            for (int i = 0; i < getcontProductos; i++) {
+
+                inv += "\n*******************"
+                        + "\nCódigo del producto: " + codP.getCodigo[i] + "\nNombre del producto: " + codP.getNombre[i] + "\nCantidad: " + codP.Stock[i] + "\nPrecio: " + codP.getPrecio[i]
+                        + "\nProveedor: " + prov.getNombreEmpresa[i] + "\n*******************";
+          
+            }
+   
+            buscar = LE.leerLong(inv + "\n*************************" + "\nColocar el código del producto a comprar");
+            boolean existe = false; 
+            int indicep = -1; 
+            for(int i = 0; i < getcontProductos; i++){
+                if(buscar == getcontProductos[i]){
+                    existe = true; 
+                    indicep = i; 
+                    break; 
+                }
+            }
+            
+            if(existe){
+            
+     
+            
+
+            for (int i = 0; i < getcontProductos; i++) {
+             
+                
+                
+
+                if (buscar == codP.getCodigo[i]) {
+                    
+          
+
+                    int rpta = 0;
+
+                    rpta = LE.mostrarPreguntaOpcion2("¿Estás seguro que quiere comprar este producto?");
+
+                    if (rpta == 0) {
+
+                        // Saber si hay saldo
+                        if (nuevosaldo < codP.getPrecio[i]) {
+
+                            LE.mostrarAdvertencia("Usted no cuenta con el saldo suficiente, porfavor ingrese saldo");
+                            break;
+
+                        } else {
+
+                            LE.mostrarAdvertencia("La compra se ha procedido.");
+                            nuevosaldo = nuevosaldo - codP.getPrecio[i];
+
+                            codP.getStock[i] = codP.getStock[i] - 1;
+
+                            productocomprado[BD.contCompras] = buscar;
+
+                            BD.contCompras++;
+                            contFechas++;
+
+                        }
+
+                    } else {
+                        break;
+                    }
+
+                }
+            }
+
+        }else{
+                LE.mostrarAdvertencia("Este producto no existe");
+            }
+        }
+    }
+
+ public void historial() {
+
+Productos codP = new Productos(); 
+Proveedor prov = new Proveedor(); 
+simuladorBaseDeDatos BD = new simuladorBaseDeDatos(); 
+
+        String historial = "";
+        
+        if(BD.contCompras == 0){
+            
+            LE.mostrarAdvertencia("No tienes productos comprados");
+        }else{ 
+
+        for (int i = 0; i < BD.contCompras; i++) {
+
+            historial += "\n<<Compra N#" + (i + 1) + ">> "
+                    + "\nCódigo del producto comprado: " + productocomprado[i] + "\nNombre producto: " + codP.getNombre[i] + "\nPrecio: " + codP.getPrecio[i]
+                    + "- Fecha: " + fecha.getYear() + "-" + fecha.getMonthValue() + "-" + fecha.getDayOfMonth() + "-" + fecha.getHour();
+
+        }
+
+        LE.mostrarInformacion(historial);
+        }
+
+    }
+
+
+   public void ordenarInv() {
+
+        long aux1 = 0;  
+                String aux2 = "";   
+
+
+Productos codP = new Productos(); 
+Proveedor prov = new Proveedor(); 
+simuladorBaseDeDatos BD = new simuladorBaseDeDatos(); 
+ 
+        for (int i = 0; i < BD.contCompras - 1; i++) {
+            for (int j = i + 1; j < BD.contCompras; j++) {
+                
+                aux1 = productocomprado[i]; 
+                productocomprado[i] = productocomprado[j]; 
+                productocomprado[j] = aux1; 
+                
+                aux2 = codP.getNombre[i]; 
+                codP.getNombre[i] = codP.getNombre[j]; 
+                codP.getNombre[j] = aux2;
+                
+                
+
+            }
+
+        }
+
+    }
+
+
+private void inventarioJuegos() {
+
+
+Productos codP = new Productos(); 
+Proveedor prov = new Proveedor(); 
+simuladorBaseDeDatos BD = new simuladorBaseDeDatos(); 
+
+
+
+        if (BD.contCompras == 0) {
+
+            LE.mostrarAdvertencia("No tienes juegos comprados");
+
+        } else {
+
+            String inventario = "";
+
+            for (int i = 0; i < BD.contCompras; i++) {
+
+                inventario += "\n<<Juego N#" + (i + 1) + ">> "
+                        + "\nCódigo del producto comprado: " + productocomprado[i] + "\nNombre producto: " + codP.getNombre()[i];
+
+            }
+
+            LE.mostrarInformacion(inventario);
+        }
+
+    }
+
+
+
+  public void saldo() {
+
+
+Cliente cli = new Cliente(); 
+
+        double saldoM = 0;
+
+        if (saldoM == 0) {
+
+            saldoM = LE.leerDouble("Ingrese un saldo : ");
+            cli.getSaldo() = saldoM;
+
+        } else {
+
+            double saldo = LE.leerDouble("Ingrese un saldo a agregar: ");
+
+            cli.getSaldo() += saldo;
+
+        }
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -298,6 +515,15 @@ public class Login {
         controladora.creaUsuario(usu); 
         controladora.creaCliente(clien);
     }
+
+
+
+
+
+
+
+
+
 
     
     private String validarNombreUsuClienteRegistro(){
