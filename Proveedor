@@ -1,0 +1,53 @@
+
+package logica;
+
+//relacion 1 a N con producto
+public class Proveedor {
+    
+    //atributos
+    private long codProveedor; 
+    private String nombreEmpresa; 
+    //un proveedor tiene productos 
+    Productos[] productos; 
+    
+    //constructores
+
+    public Proveedor() {
+    }
+
+    public Proveedor(long codProveedor, String nombreEmpresa, Productos[] productos) {
+        this.codProveedor = codProveedor;
+        this.nombreEmpresa = nombreEmpresa;
+        this.productos = productos;
+    }
+
+    //sett and gett
+
+    public long getCodProveedor() {
+        return codProveedor;
+    }
+
+    public void setCodProveedor(long codProveedor) {
+        this.codProveedor = codProveedor;
+    }
+
+    public String getNombreEmpresa() {
+        return nombreEmpresa;
+    }
+
+    public void setNombreEmpresa(String nombreEmpresa) {
+        this.nombreEmpresa = nombreEmpresa;
+    }
+
+    public Productos[] getProductos() {
+        return productos;
+    }
+
+    public void setProductos(Productos[] productos) {
+        this.productos = productos;
+    }
+    
+    
+    
+    
+}
