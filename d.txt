@@ -155,6 +155,122 @@ public class Login {
     
     private void principalCliente(){
     //pagina principal de cliente
+
+  boolean seguir = false;
+
+        String menu = "********************"
+                + "\n[1]Comprar juego"
+                + "\n[2]Ordenar inventario de juegos por nombre"
+                + "\n[3]Visualizar inventario de juegos"
+                + "\n[4]Ingresar saldo"
+                + "\n[5]Volver al menú principal"
+                + "\n********************";
+
+        String[] opciones = {"1", "2", "3", "4", "5"};
+
+        do {
+
+            int opc = JOptionPane.showOptionDialog(null,
+                    menu,
+                    "Menu",
+                    JOptionPane.DEFAULT_OPTION,
+                    JOptionPane.PLAIN_MESSAGE,
+                    null,
+                    opciones,
+                    opciones[0]);
+
+            switch (opc) {
+
+                case 0:
+
+                    comprar();
+
+                    seguir = true;
+                    break;
+
+                case 1:
+                    ordenarInv();
+                    inventarioJuegos();
+                    seguir = true;
+                    break;
+
+                case 2:
+                    inventarioJuegos();
+                    seguir = true;
+                    break;
+
+                case 3:
+
+                    saldo();
+                    seguir = true;
+                    break;
+
+                case 4:
+                    seguir = false;
+                    break;
+
+            }
+
+        } while (seguir);
+
+    }
+
+
+    public void comprar() {
+
+        boolean seguir = false;
+
+        String menu = "********************"
+                + "\n[1]Comprar juego"
+                + "\n[2]Historial de compras"
+                + "\n[3]Volver al menú"
+                + "\n********************"
+                + "\nSaldo actual: " + nuevosaldo;
+
+        String[] opciones = {"1", "2", "3"};
+
+        do {
+
+            int opc = JOptionPane.showOptionDialog(null,
+                    menu,
+                    "Menu",
+                    JOptionPane.DEFAULT_OPTION,
+                    JOptionPane.PLAIN_MESSAGE,
+                    null,
+                    opciones,
+                    opciones[0]);
+
+            switch (opc) {
+
+                case 0:
+
+                    comprarJuego();
+
+                    seguir = true;
+                    break;
+                case 1:
+
+                    historial();
+                    seguir = true;
+                    break;
+                case 2:
+
+                    seguir = false;
+                    break;
+
+            }
+
+        } while (seguir);
+
+    }
+
+
+
+
+
+
+
+
     }
 
     private void registrarseCliente() {
