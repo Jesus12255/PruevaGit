@@ -181,7 +181,6 @@ do{
 
 opc = LE.leerInt(msj); 
 
-
 switch(opc){
 case 1: 
 
@@ -195,14 +194,16 @@ registrarseCliente();
 case 3: 
 
 seguir = false; 
-break; 
+break;
+
+default: 
+ LE.mostrarAdvertencia("opcion invalida, vueva a ingresar");
 
 
 }
 
 
 }while(!seguir); 
-
 
 
 }
@@ -220,8 +221,6 @@ break;
         }else{
             LE.mostrarAdvertencia("Nombre de usuario o contraseña incorrecotos");
         }
-
-
 
 
 }
