@@ -1,141 +1,370 @@
+package controladora;
 
-package Vista;
-import biblioteca.LE; 
+import baseDeDatos.ListaDinamica;
+import baseDeDatos.SimuladorBaseDeDatos;
+import biblioteca.LE;
+import java.time.LocalDateTime;
 import logica.Administrador;
-
-
 import logica.Cliente;
-import logica.Controlador;
+import logica.Compra;
+import logica.Productos;
+import logica.Proveedor;
 import logica.Usuario;
 
 
-public class Login {
+public class Controlador {
     
-    Controlador controladora; 
-    int detectaRegistroAdminUnico; 
+    //atributos
+    private SimuladorBaseDeDatos bd; 
+    private int detectaRegistroAdminUnico;
+    private long codigoClienteSesionActual; 
     
-    public Login(){
-        controladora = new Controlador(); 
+    //constructor
+    public Controlador() {
+        bd = new SimuladorBaseDeDatos(); 
         detectaRegistroAdminUnico = 0; 
+        codigoClienteSesionActual = 0; 
     }
-    
-    
-    public void loginPrincipal(){
-    
-        String  msj = """
-                        <<<< TIPO USUARIO  >>>
-                      [1] Cliente
-                      [2] Aministrador
-                      [3] Salir
-                      ------------------
-                      Elija una opcion
-                   """;
-        int op;
-        do {            
-            op = LE.leerInt(msj); 
-            
-            switch (op) {
-                case 1:
-                    loginCliente(); 
-                    break;
-                case 2:
-                    loginAdministrador();
-                    break;
-                case 3:
-                    
-                    break;
-                default:
-                    LE.mostrarAdvertencia("opcion invalida, vueva a ingresar");
-            }
-        } while (op != 3);
-    }
-    
-    
-    
-    //apartado Cliente
-    
-    public void loginCliente() {
 
-       
-        int opc = 0;
+    //metodos
+    
+    public void mostrarListaProductosComprados() {
 
-        String msj = """
-                        <<<< LOGIN  CLIENTE>>>
-                      [1] Iniciar sesion
-                      [2] Registrarse
-                      [3] Volver
-                      ------------------
-                      Elija una opcion
-                   """;
+      
+        int indiceCliente = traeIndiceClienteActualMediante(codigoClienteSesionActual);
 
-        do {
-            opc = LE.leerInt(msj);
-            switch (opc) {
-                case 1:
-                    if (controladora.traeContUsuarios() != 0) {
-                        iniciasesionCliente();
-                    }else{
-                        LE.mostrarAdvertencia("Aún no hay usuarios registrados");
-                    }
-                    
-                    break; 
-                case 2:
+        //trayendo la cantidad de compras que ha realizado el cliente actual
+        int contComprasDelCliente = bd.getClientes().obtenerObj(indiceCliente).getCompras().getContador();
+        //si no hay compras
+        if (contComprasDelCliente == 0) {
 
-                    registrarseCliente();
-                    break; 
-                case 3:
+            LE.mostrarAdvertencia("No tienes productos comprados");
 
-                   
-                    break;
+            //si hay compras
+        } else {
 
-                default:
-                    LE.mostrarAdvertencia("opcion invalida, vueva a ingresar");
+            long codigoProductoComprado;
+            String nombreProductoComprado;
+            double precioProductoComprado;
+            String fechaProductoComprado;
+            String historial = "";
+            //añadiendo  cada compra a la lista de compras
+            for (int i = 0; i <  contComprasDelCliente; i++) {
+
+                //trayendo codigo del producto comprado por el cliente
+                codigoProductoComprado = bd.getClientes().obtenerObj(indiceCliente).getCompras().obtenerObj(i).getProducto().getCodigo();
+                //trayendo nombre del producto comprado por el cliente
+                nombreProductoComprado = bd.getClientes().obtenerObj(indiceCliente).getCompras().obtenerObj(i).getProducto().getNombre();
+                //trayendo el precio del producto comprado por el cliente
+                precioProductoComprado = bd.getClientes().obtenerObj(indiceCliente).getCompras().obtenerObj(i).getProducto().getPrecio();
+                //trayendo la fecha de compra del producto comprado
+                fechaProductoComprado = bd.getClientes().obtenerObj(indiceCliente).getCompras().obtenerObj(i).getProducto().getFechaLanzamiento();
+                //
+
+                historial += "\n<<Compra N#" + (i + 1) + ">> "
+                        + "\nCódigo del producto comprado: " + codigoProductoComprado + "\nNombre producto: " + nombreProductoComprado + "\nPrecio: " + precioProductoComprado
+                        + "- Fecha: " + fechaProductoComprado;
 
             }
 
-        } while (opc != 3);
+            LE.mostrarInformacion(historial);
+        }
 
     }
-
-    private void iniciasesionCliente() {
+    
+    
+    public void realizaCompra() {
         
-        boolean incorrecto;  
-        String nombreBuscar; 
-        String contraseniaBuscar; 
-        do {            
-            incorrecto = true; 
-            nombreBuscar = LE.leerString("Ingrese el nombre de usuario"); 
-            contraseniaBuscar = LE.leerString("Ingrese contraseña");
-            
-            
-            for (int i = 0; i < controladora.traeContUsuarios(); i++) {
+        String listaInventario; 
+        listaInventario = traeListaProductos();
+        
+        //ingresa codigo del pructo que desea comprar
+        long codProducto = verSiCodigoProductoIngresadoExiste(listaInventario + "\n*************************" + "\nColocar el código del producto a comprar"); //comprueva que el producto exista en la lista de productos
+        int indiceProducto = traeIndiceProductoMediante(codProducto); 
+        //si el stock del producto que deseas comprar es suficiente
+        if (bd.getProductos().obtenerObj(indiceProducto).getStock() > 1) {
+
+            int rpta;
+            rpta = LE.mostrarPreguntaOpcion2("¿Estás seguro que quiere comprar este producto?");
+
+            //si quiere realizar la compra
+            if (rpta == 0) {
                 
-                String nombreAlmacenado = controladora.traeUsuarioControlador(i).getNombreUsuario();
-                String contrasenniaAlmacenada = controladora.traeUsuarioControlador(i).getContraseña(); 
+                int indiceCliente = traeIndiceClienteActualMediante(codigoClienteSesionActual); 
                 
-                if (nombreAlmacenado.equals(nombreBuscar) && contrasenniaAlmacenada.equals(contraseniaBuscar)) {
-                    incorrecto = false; 
-                    principalCliente();
+                double saldoActualCliente = bd.getClientes().obtenerObj(indiceCliente).getSaldo(); 
+                double precioDelProductoAComprar = bd.getProductos().obtenerObj(indiceProducto).getPrecio(); 
+
+                // si el saldo del cliente actual es menor al precio del producto 
+                if (saldoActualCliente < precioDelProductoAComprar) {
+
+                    LE.mostrarAdvertencia("Usted no cuenta con el saldo suficiente, porfavor recargue su saldo");
+
+                    //si el saldo es suficiente para la compra
                 } else {
-                    LE.mostrarAdvertencia("Nombre de usuario o contraseña incorrectos");
+
+                    //realizando la compra (actualizacion de saldo del cliente)
+                    double nuevoSaldo = saldoActualCliente - precioDelProductoAComprar;
+                    bd.getClientes().obtenerObj(indiceCliente).setSaldo(nuevoSaldo);
+                    
+                    //disminuyendo stock del producto (actualizacion del stock del producto)
+                    bd.getProductos().obtenerObj(indiceProducto).setStock(bd.getProductos().obtenerObj(indiceCliente).getStock() - 1);
+                    
+                    //mostrando saldo actual del cliente
+                    System.out.println("Saldo actual cliente: " + nuevoSaldo);
+
+                    //registrando compra
+                    //---------------------
+                    
+                    long codigoCompra = bd.getCompras().getContador(); 
+                    LocalDateTime fechaCompra = LocalDateTime.now();
+                    String fechaCompraStr = String.valueOf(fechaCompra.getYear() + "/" + fechaCompra.getMonth() + "/" + fechaCompra.getDayOfMonth() + "---" + fechaCompra.getHour() + ":" + fechaCompra.getMinute() + ":" + fechaCompra.getSecond());
+                    Cliente cliente = bd.getClientes().obtenerObj(indiceCliente);
+                    Productos producto = bd.getProductos().obtenerObj(indiceProducto);
+
+                    //guardando datos ingresados en un objetod de tipo compra
+                    Compra compra = new Compra(codigoCompra, fechaCompraStr, cliente, producto);
+                    //guardando compra en BD
+                    bd.getCompras().agregar(compra);
+                    
+                    //guardando la compra en el registro de compras el cliente
+                    bd.getClientes().obtenerObj(indiceCliente).getCompras().agregar(compra);
+
+                    LE.mostrarInformacion("Producto comprado");
+
                 }
+
+            }
+            //si no hay stock del producto que se desea comprar
+        } else {
+            LE.mostrarAdvertencia("No hay Stock de este producto");
+        }
+        //si el producto no se encuentra en la lista de productos
+    }
+    
+    
+
+    
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    public long verSiCodigoProductoIngresadoExiste(String msj) { //implementar busqueda binaria
+        
+        
+        int existe;
+        long codIngresado;
+        ListaDinamica<Productos> productos; 
+        int contProductos; 
+        
+        do {
+            existe = -1;
+            codIngresado = LE.leerLong(msj);
+            
+            productos = bd.getProductos();
+            contProductos = bd.getProductos().getContador(); 
+            existe = recorreArrayObjetoBuscando(productos, contProductos, codIngresado, existe); 
+            //recorreProductosBuscando(codIngresado, existe);
+            
+            if (existe == -1) {
+                LE.mostrarAdvertencia("Codigo de producto no existe");
+            }
+
+        } while (existe == -1);
+
+        return codIngresado;
+    }
+    
+    //////////////////////////////////////////////////////////////////////////////////////////////////
+    public <T> int recorreArrayObjetoBuscando(ListaDinamica<T> lista, int contObjetos,  long codIngresado, int existe){
+        
+        //busqueda binaria
+        int inicio = 0; 
+        int medio; 
+        int fin = contObjetos - 1 ; 
+        
+        long codigoEnPosicion; 
+        
+        while (inicio <= fin) {            
+            
+            medio = (inicio + fin)/2; 
+            
+            codigoEnPosicion = Long.parseLong(lista.obtenerObj(medio).toString()); 
+            
+            if (codIngresado  == codigoEnPosicion) {
+                
+                existe = medio; 
+                break;
+                
+            }else if(codIngresado > codigoEnPosicion){
+            
+                inicio = medio + 1; 
+            }else{
+                
+                fin = medio -1 ; 
+            }
+        }
+        
+        return 1; 
+    }
+    
+    
+    public <T> void ordenaArrayObjetosPorCodigo(T[] objetos, int contObjetos){
+        //ordenamiento por seleccion 
+        int posMin; 
+        for (int i = 0; i < contObjetos -1; i++) {
+            posMin = i; 
+            for (int j = 0; j < 10; j++) {
                 
             }
-        } while (incorrecto);
+        }
+        
+        
+    }
+    //////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    public int recorreProductosBuscando(long codIngresado, int existe){// implementar busqueda binaria
+        
+        //busqueda binaria
+        int inicio = 0; 
+        int medio; 
+        int fin = bd.getProductos().getContador() -1; 
+        
+        long codigoEnPosicion; 
+        
+        while (inicio <= fin) {            
+            
+            medio = (inicio + fin)/2; 
+            
+            codigoEnPosicion = bd.getProductos().obtenerObj(medio).getCodigo();
+            
+            if (codIngresado  == codigoEnPosicion) {
+                
+                existe = medio; 
+                break;
+                
+            }else if(codIngresado > codigoEnPosicion){
+            
+                inicio = medio + 1; 
+            }else{
+                
+                fin = medio -1 ; 
+            }
+        }
+        
+        return existe; 
+    }
+    
+    public int traeIndiceProductoMediante(long codigoProveedorBuscar){
+        
+        int indice = 0; 
+        long codigoDeCadaProducto; 
+        
+        for (int i = 0; i <  bd.getProductos().getContador() ; i++) {
+            codigoDeCadaProducto = bd.getProductos().obtenerObj(i).getCodigo(); 
+            if (codigoDeCadaProducto == codigoProveedorBuscar) {
+                indice = i; 
+            }
+        }
+        return indice; 
+    }
+    
+  
+    
+    public int traeContProductos(){
+        return bd.getProductos().getContador(); 
+    }
+    
+    public void saldo() {
+        
+        int indice = traeIndiceClienteActualMediante(codigoClienteSesionActual); 
+        
+        double saldoAumento = LE.leerDouble("Ingrese el ingrese cuanto dinero quiere recargar a su cuenta");
+        double saldoActual =  bd.getClientes().obtenerObj(indice).getSaldo(); 
+        
+        //actualizando saldo
+        bd.getClientes().obtenerObj(indice).setSaldo(saldoActual + saldoAumento);
+        
+    }
+
+    private int traeIndiceClienteActualMediante(long codigoClienteSesionActual) {
+        
+        int indice = 0;  
+        
+        for (int i = 0; i < bd.getClientes().getContador(); i++) {
+            if (codigoClienteSesionActual == bd.getClientes().obtenerObj(i).getCodigo()) {
+                indice = i; 
+            }
+        }
+        return indice;  
+    }
+    
+    public int verificaSiUsuarioExisteEnBaseDatos(String nombreBuscar, String contraseniaBuscar) {
+
+        int existe = -1;
+
+        for (int i = 0; i < bd.getUsuarios().getContador() ; i++) {
+
+            String nombreAlmacenado = bd.getUsuarios().obtenerObj(i).getNombreUsuario();
+            String contrasenniaAlmacenada = bd.getUsuarios().obtenerObj(i).getContraseña() ;
+
+            if (nombreAlmacenado.equals(nombreBuscar) && contrasenniaAlmacenada.equals(contraseniaBuscar)) {
+                existe = i;
+                codigoClienteSesionActual = bd.getUsuarios().obtenerObj(i).getCodigo();  //guardando  el  inicio de sesion actual
+                break;
+            }
+        }
+        
+        //si no hay un usuario con la contraseña y correo indicados
+        if (existe == -1) {
+            LE.mostrarAdvertencia("Nombre de usuario o contraseña incorrectos");
+        }
+        
+        return existe;
+    }
+
+    public int traeContUsuarion(){
+        return bd.getUsuarios().getContador(); 
+    }
+    
+    public void registrarseCliente() {
+        //datos a guardar
+        String nombre, apellido;
+        long codCliente;
+
+        LE.mostrarInformacion("Registrando nuevo cuenta de Cliente");
+
+        codCliente = bd.getClientes().getContador(); 
+        nombre = ingresaValidaCadena("Ingrese el nombre");
+        apellido = ingresaValidaCadena("Ingresa el apellido");
+
+        //registrando usuario del cliente
+        String nombreUsuario, contraseniaUsu;
+        String rol = "Cliente";
+        long codUsuario = bd.getUsuarios().getContador(); 
+
+        nombreUsuario = validarNombreUsuClienteRegistro();
+        contraseniaUsu = LE.leerString("Ingrese la contraseña");
+
+        Usuario usu = new Usuario(codUsuario, nombreUsuario, contraseniaUsu, rol);
+        //guardando usuario en la base de datos
+        bd.getUsuarios().agregar(usu);
+        
+        
+        Cliente clien = new Cliente(codCliente, 0, usu, nombre, apellido);
+        //guardando cliente en la base de datos
+        bd.getClientes().agregar(clien);
 
     }
     
-    private String validarNombreUsuClienteInicioSesion() {
+    public String validarNombreUsuClienteRegistro() {
 
-        Usuario[] usuarios = controladora.traeUsuarios();
-        String nombreUsuarioRegistrar;
-        int existe = -1;
+        String nombreRegistrar;
+        int existe;
         do {
-            nombreUsuarioRegistrar = LE.leerString("Ingrese el nombre de usuario");
+            existe = -1;
+            nombreRegistrar = ingresaValidaCadena("Ingrese el nombre de usuario para el cliente a registrar"); 
+            for (int i = 0; i < bd.getUsuarios().getContador(); i++) {
 
-            for (int i = 0; i < controladora.traeContUsuarios(); i++) {
-
-                if (usuarios[i].getNombreUsuario().equals(nombreUsuarioRegistrar)) {
+                if ( bd.getUsuarios().obtenerObj(i).getNombreUsuario().equals(nombreRegistrar)) {
                     existe = i;
                     break;
                 }
@@ -149,560 +378,330 @@ public class Login {
 
         } while (existe != -1);
 
-        return nombreUsuarioRegistrar;
+        return nombreRegistrar;
     }
+    
 
     
-    private void principalCliente(){
-    //pagina principal de cliente
-
-  boolean seguir = false;
-
-        String menu = "********************"
-                + "\n[1]Comprar juego"
-                + "\n[2]Ordenar inventario de juegos por nombre"
-                + "\n[3]Visualizar inventario de juegos"
-                + "\n[4]Ingresar saldo"
-                + "\n[5]Volver al menú principal"
-                + "\n********************";
-
-        String[] opciones = {"1", "2", "3", "4", "5"};
-
-        do {
-
-            int opc = JOptionPane.showOptionDialog(null,
-                    menu,
-                    "Menu",
-                    JOptionPane.DEFAULT_OPTION,
-                    JOptionPane.PLAIN_MESSAGE,
-                    null,
-                    opciones,
-                    opciones[0]);
-
-            switch (opc) {
-
-                case 0:
-
-                    comprar();
-
-                    seguir = true;
-                    break;
-
-                case 1:
-                    ordenarInv();
-                    inventarioJuegos();
-                    seguir = true;
-                    break;
-
-                case 2:
-                    inventarioJuegos();
-                    seguir = true;
-                    break;
-
-                case 3:
-
-                    saldo();
-                    seguir = true;
-                    break;
-
-                case 4:
-                    seguir = false;
-                    break;
-
-            }
-
-        } while (seguir);
-
-    }
-
-
-    public void comprar() {
-
-        boolean seguir = false;
-
-        String menu = "********************"
-                + "\n[1]Comprar juego"
-                + "\n[2]Historial de compras"
-                + "\n[3]Volver al menú"
-                + "\n********************"
-                + "\nSaldo actual: " + nuevosaldo;
-
-        String[] opciones = {"1", "2", "3"};
-
-        do {
-
-            int opc = JOptionPane.showOptionDialog(null,
-                    menu,
-                    "Menu",
-                    JOptionPane.DEFAULT_OPTION,
-                    JOptionPane.PLAIN_MESSAGE,
-                    null,
-                    opciones,
-                    opciones[0]);
-
-            switch (opc) {
-
-                case 0:
-
-                    comprarJuego();
-
-                    seguir = true;
-                    break;
-                case 1:
-
-                    historial();
-                    seguir = true;
-                    break;
-                case 2:
-
-                    seguir = false;
-                    break;
-
-            }
-
-        } while (seguir);
-
-    }
-
-public void comprarJuego() {
-
-  
-        String inv = "";
-
-        long buscar = 0;
-
-Productos codP = new Productos(); 
-Proveedor prov = new Proveedor(); 
-simuladorBaseDeDatos BD = new simuladorBaseDeDatos(); 
-
-
-        if (getcontProductos == 0) {
-            LE.mostrarAdvertencia("No hay productos en stock");
-
+    public void muestraRegistroDeVentas() {
+        if (bd.getCompras().getContador() == 0) {
+            LE.mostrarAdvertencia("Aun no se ha realizado ninguna compra");
         } else {
+            double ganancias = 0;
+            String msj = "REGISTRO DE VENTAS \n"
+                    + "-------------------------------------------------------------------------------------------------------------------------\n";
 
-            for (int i = 0; i < getcontProductos; i++) {
-
-                inv += "\n*******************"
-                        + "\nCódigo del producto: " + codP.getCodigo[i] + "\nNombre del producto: " + codP.getNombre[i] + "\nCantidad: " + codP.Stock[i] + "\nPrecio: " + codP.getPrecio[i]
-                        + "\nProveedor: " + prov.getNombreEmpresa[i] + "\n*******************";
-          
+            for (int i = 0; i < bd.getCompras().getContador(); i++) {
+                ganancias += bd.getCompras().obtenerObj(i).getProducto().getPrecio();
+                msj += "\n Venta N°" + (i + 1) + "\n"
+                        + bd.getCompras().obtenerObj(i).toString() + "\n"
+                        + "**************************************" + "\n"; 
             }
+            msj += "Ganancias: " + ganancias + "\n";
+            msj += "-------------------------------------------------------------------------------------------------------------------------";
+            LE.mostrarInformacion(msj);
+        }
+    }
+    
+    public  String traeListaProductos(){
+        String listaInventario = ""; 
+        for (int i = 0; i < bd.getProductos().getContador(); i++) {
+
+            listaInventario += "\n*******************"
+                    + "\nCódigo del producto: " +  bd.getProductos().obtenerObj(i).getCodigo() 
+                    + "\nNombre del producto: " + bd.getProductos().obtenerObj(i).getNombre() 
+                    + "\nCantidad: " + bd.getProductos().obtenerObj(i).getStock() 
+                    + "\nPrecio: " + bd.getProductos().obtenerObj(i).getPrecio()
+                    + "\nProveedor: " + bd.getProductos().obtenerObj(i).getProveedor().getNombreEmpresa() 
+                    + "\n*******************";
+
+        }
+        return listaInventario; 
+    }
+    
+    public void cambiarFechaNac() {
+
+        int op = LE.mostrarPreguntaOpcion2("¿Estas se guro de que quieres cambiar tu fecha de nacimiento?");
+        if (op == 0) {
+            String fechaNac = ingresaValidaFechaNac("Registrando la fecha de nacimiento");
+            bd.getAdministradorUnico().setFechaNacimiento(fechaNac);
+        }
+    }
+    
+    public void cambiarDNI() {
+        int op = LE.mostrarPreguntaOpcion2("¿Estas sguro de que quieres cambiar tu numero de DNI registrado?");
+        if (op == 0) {
+            String dni = ingresaValidaDNI();
+            bd.getAdministradorUnico().setNumDNI(dni);
+        }
+    }
    
-            buscar = LE.leerLong(inv + "\n*************************" + "\nColocar el código del producto a comprar");
-            boolean existe = false; 
-            int indicep = -1; 
-            for(int i = 0; i < getcontProductos; i++){
-                if(buscar == getcontProductos[i]){
-                    existe = true; 
-                    indicep = i; 
-                    break; 
-                }
-            }
-            
-            if(existe){
-            
-     
-            
+    public void cambiarNombre(String msjPregunta, String msj) {
 
-            for (int i = 0; i < getcontProductos; i++) {
-             
-                
-                
+        int op = LE.mostrarPreguntaOpcion2(msjPregunta);
 
-                if (buscar == codP.getCodigo[i]) {
-                    
-          
-
-                    int rpta = 0;
-
-                    rpta = LE.mostrarPreguntaOpcion2("¿Estás seguro que quiere comprar este producto?");
-
-                    if (rpta == 0) {
-
-                        // Saber si hay saldo
-                        if (nuevosaldo < codP.getPrecio[i]) {
-
-                            LE.mostrarAdvertencia("Usted no cuenta con el saldo suficiente, porfavor ingrese saldo");
-                            break;
-
-                        } else {
-
-                            LE.mostrarAdvertencia("La compra se ha procedido.");
-                            nuevosaldo = nuevosaldo - codP.getPrecio[i];
-
-                            codP.getStock[i] = codP.getStock[i] - 1;
-
-                            productocomprado[BD.contCompras] = buscar;
-
-                            BD.contCompras++;
-                            contFechas++;
-
-                        }
-
-                    } else {
-                        break;
-                    }
-
-                }
-            }
-
-        }else{
-                LE.mostrarAdvertencia("Este producto no existe");
-            }
+        if (op == 0) {
+            String nombre = ingresaValidaCadena(msj);
+            bd.getAdministradorUnico().setNombre(nombre);
         }
     }
-
- public void historial() {
-
-Productos codP = new Productos(); 
-Proveedor prov = new Proveedor(); 
-simuladorBaseDeDatos BD = new simuladorBaseDeDatos(); 
-
-        String historial = "";
-        
-        if(BD.contCompras == 0){
-            
-            LE.mostrarAdvertencia("No tienes productos comprados");
-        }else{ 
-
-        for (int i = 0; i < BD.contCompras; i++) {
-
-            historial += "\n<<Compra N#" + (i + 1) + ">> "
-                    + "\nCódigo del producto comprado: " + productocomprado[i] + "\nNombre producto: " + codP.getNombre[i] + "\nPrecio: " + codP.getPrecio[i]
-                    + "- Fecha: " + fecha.getYear() + "-" + fecha.getMonthValue() + "-" + fecha.getDayOfMonth() + "-" + fecha.getHour();
-
-        }
-
-        LE.mostrarInformacion(historial);
-        }
-
-    }
-
-
-   public void ordenarInv() {
-
-        long aux1 = 0;  
-                String aux2 = "";   
-
-
-Productos codP = new Productos(); 
-Proveedor prov = new Proveedor(); 
-simuladorBaseDeDatos BD = new simuladorBaseDeDatos(); 
- 
-        for (int i = 0; i < BD.contCompras - 1; i++) {
-            for (int j = i + 1; j < BD.contCompras; j++) {
-                
-                aux1 = productocomprado[i]; 
-                productocomprado[i] = productocomprado[j]; 
-                productocomprado[j] = aux1; 
-                
-                aux2 = codP.getNombre[i]; 
-                codP.getNombre[i] = codP.getNombre[j]; 
-                codP.getNombre[j] = aux2;
-                
-                
-
-            }
-
-        }
-
-    }
-
-
-private void inventarioJuegos() {
-
-
-Productos codP = new Productos(); 
-Proveedor prov = new Proveedor(); 
-simuladorBaseDeDatos BD = new simuladorBaseDeDatos(); 
-
-
-
-        if (BD.contCompras == 0) {
-
-            LE.mostrarAdvertencia("No tienes juegos comprados");
-
-        } else {
-
-            String inventario = "";
-
-            for (int i = 0; i < BD.contCompras; i++) {
-
-                inventario += "\n<<Juego N#" + (i + 1) + ">> "
-                        + "\nCódigo del producto comprado: " + productocomprado[i] + "\nNombre producto: " + codP.getNombre()[i];
-
-            }
-
-            LE.mostrarInformacion(inventario);
-        }
-
-    }
-
-
-
-  public void saldo() {
-
-
-Cliente cli = new Cliente(); 
-
-        double saldoM = 0;
-
-        if (saldoM == 0) {
-
-            saldoM = LE.leerDouble("Ingrese un saldo : ");
-            cli.getSaldo() = saldoM;
-
-        } else {
-
-            double saldo = LE.leerDouble("Ingrese un saldo a agregar: ");
-
-            cli.getSaldo() += saldo;
-
-        }
-
-    }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    }
-
-    private void registrarseCliente() {
-
-        String nombre, apellido;
-        long codCliente = controladora.traeContCliente();
-
-        LE.mostrarInformacion("Registrando nuevo cuenta de Cliente");
-
-        nombre = LE.leerString("Ingrese el nombre");
-        apellido = LE.leerString("Ingrese el apellido");
-
-        //tipo de usuario
-        String nombreUsuario, contraseniaUsu;
-        String rol = "Cliente";
-        long codUsuario = controladora.traeContUsuarios();
-
-        nombreUsuario = validarNombreUsuClienteRegistro(); 
-        contraseniaUsu = LE.leerString("Ingrese la contraseña");
-        
-
-        Usuario usu = new Usuario(codUsuario, nombreUsuario, contraseniaUsu, rol);
-        Cliente clien = new Cliente(codCliente,0, usu, nombre, apellido); 
-        
-        controladora.creaUsuario(usu); 
-        controladora.creaCliente(clien);
-    }
-
-
-
-
-
-
-
-
-
-
     
-    private String validarNombreUsuClienteRegistro(){
-        
-      
-        Usuario[] usuarios = controladora.traeUsuarios();
-        String nombreUsuarioRegistrar; 
-        int existe = -1; 
-        do {    
-            nombreUsuarioRegistrar = LE.leerString("Ingrese el nombre de usuario"); 
-            
-            for (int i = 0; i < controladora.traeContUsuarios(); i++) {
+    public void cambiarApellido(String msjPregunta, String msj) {
 
-                if (usuarios[i].getNombreUsuario().equals(nombreUsuarioRegistrar)) {
-                    existe = i; 
-                    break;
-                }
-            }
-            
-            if (existe != -1) {
-                LE.mostrarAdvertencia("El nombre de usuario ya existe, vuelva a ingresar");
-            }else{
-                LE.mostrarInformacion("nombre de usuario valido");
-            }
-            
+        int op = LE.mostrarPreguntaOpcion2(msjPregunta);
+
+        if (op == 0) {
+            String apellido = ingresaValidaCadena(msj);
+            bd.getAdministradorUnico().setApellido(apellido);
+        }
+    }
+    
+    public void registraJuego() {
+        //datos a guardar
+        long codProducto;
+        String nombre; 
+        int stock; 
+        String fechaLanzamiento;  
+        double precioProducto; 
+        Proveedor proveedor;
+        
+        //pidiendo datos
+        codProducto = verSiCodigoProductoIngresadoNoExiste("Ingrese el codigo del producto");
+        nombre = ingresaValidaCadena("Ingrese el nombre del Juego");
+        fechaLanzamiento = ingresaValidaFechaNac("Ingrese la fecha de lanzamiento del juego ");
+        stock = LE.leerInt("Ingrese el stock inicial del juego");
+        precioProducto = LE.leerInt("Ingrese el precio del juego");
+        proveedor = ingresaProveedor();
+        
+        //guardando producto 
+        Productos nuevoProducto = new Productos(codProducto, nombre, stock, fechaLanzamiento, precioProducto, proveedor); 
+        bd.getProductos().agregar(nuevoProducto);
+    }
+    
+    
+    public long verSiCodigoProductoIngresadoNoExiste(String msj) { 
+
+        int existe;
+        long codIngresado;
+        do {
+            existe = -1;
+            codIngresado = LE.leerLong(msj);
+
+            existe = recorreProductosBuscando(codIngresado, existe);
+
         } while (existe != -1);
-        
-        return nombreUsuarioRegistrar; 
+
+        return codIngresado;
     }
-
     
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    //apartado Administrador
-    
-    public void loginAdministrador(){
+    public Proveedor ingresaProveedor() {//implementar busqueda binaria
+       
+        long codProveedor = verSiCodigoProveedorIngresadoExiste(traeListaProveedores() + "\n Elija el codigo del proveedor para el producto"); 
+        int indiceProveedor = traeIndiceProveedorMediante(codProveedor); 
         
-        String  msj = """
-                        <<<< LOGIN  ADMINISTRADOR >>>
-                      [1] Iniciar sesion
-                      [2] Registrarse 
-                      [3] Mostrar datos 
-                      [4] Modificar datos 
-                      [5] Volver
-                      ------------------
-                      Elija una opcion
-                   """;
-        int op;
-        do {            
-            op = LE.leerInt(msj); 
-            
-            switch (op) {
-
-                case 1:
-
-                    if (detectaRegistroAdminUnico != 0) {
-                        iniciasesionAdministrador(); 
-                    }else{
-                        LE.mostrarAdvertencia("El administrador aun no se encuentra registrado");
-                    }
-                    
-                    break;
-                    
-                    
-                case 2:
-                    
-                    if (detectaRegistroAdminUnico < 1) {
-                        registrarseAdministrador();
-                        detectaRegistroAdminUnico++;
-                    }else{
-                        LE.mostrarAdvertencia("Ya no se pueden registrar mas administradores");
-                    }
-
-                    break;
-                case 3:
-                    if (detectaRegistroAdminUnico != 0) {                        
-                        mostrarDatosAdministrador(); 
-                    }else{
-                        LE.mostrarAdvertencia("El administrador aun no se encuentra registrado");
-                    }
-                    
-                    break;
-                case 4:
-                    if (detectaRegistroAdminUnico != 0) {                        
-                        //modificar daros del administrador
-                    }else{
-                        LE.mostrarAdvertencia("El administrador aun no se encuentra registrado");
-                    }
-                    break;
-                case 5:
-                    
-                    break;
-                default:
-                    LE.mostrarAdvertencia("opcion invalida, vueva a ingresar");
+        return bd.getProveedores().obtenerObj(indiceProveedor);//obteniendo proveedor en el indice
+        
+    }
+    
+    public int traeIndiceProveedorMediante(long codigoProveedorBuscar){
+        
+        int indice = 0; 
+        long codigoDeCadaProveedor; 
+        for (int i = 0; i < bd.getProveedores().getContador() ; i++) {
+            codigoDeCadaProveedor = bd.getProveedores().obtenerObj(i).getCodigo(); 
+            if (codigoDeCadaProveedor == codigoProveedorBuscar) {
+                indice = i; 
             }
-        } while (op != 5);
-                
-        
-    
+        }
+        return indice; 
     }
     
-    private void iniciasesionAdministrador() {
-        String nombreBuscar = LE.leerString("Ingrese el nombre de usuario"); 
-        String contraseniaBuscar =  LE.leerString("Ingrese contraseña"); 
+    public  String traeListaProveedores(){
         
-        
-        String nombreAlmacenado = controladora.obtenerAdmin().getUsu().getNombreUsuario(); 
-        String contraseniaAlmacenada = controladora.obtenerAdmin().getUsu().getContraseña(); 
-        
-     
-        if (nombreAlmacenado.equals(nombreBuscar) && contraseniaAlmacenada.equals(contraseniaBuscar)) {
-            menuAdministrador(); 
-        }else{
-            LE.mostrarAdvertencia("Nombre de usuario o contraseña incorrecotos");
+        String listaProveedores  = "LISTA DE PROVEEDORES\n"; 
+        for (int i = 0; i < bd.getProveedores().getContador(); i++) {
+            listaProveedores +="Codigo del proveedor: " + bd.getProveedores().obtenerObj(i).getCodigo()  
+                    + "     Nombre empresa: " + bd.getProveedores().obtenerObj(i).getNombreEmpresa() + "\n"; 
         }
         
-        
-        
+        return listaProveedores;
     }
     
-    private void menuAdministrador() {
+    
+    
+    public int traeContProveedores(){
+        return bd.getProveedores().getContador(); 
     }
+    
+    public long verSiCodigoProveedorIngresadoExiste(String msj) { //implementar busqueda binaria
 
-    private void registrarseAdministrador() {
+        int existe;
+        long codIngresado;
+        do {
+            existe = -1;
+            codIngresado = LE.leerLong(msj);
+
+            existe = recorreArrayProveedorBuscando(existe, codIngresado); 
+            
+            //si el codigo no existe, se vuelve a pedir el ingreso de codigo
+        } while (existe == -1);
+
+        return codIngresado;
+    }
+    
+    public int recorreArrayProveedorBuscando(int existe, long codIngresado){
         
+        
+        //busqueda binaria
+        int inicio = 0; 
+        int medio; 
+        int fin = bd.getProveedores().getContador() -1; 
+        
+        long codigoEnPosicion; 
+        
+        while (inicio <= fin) {            
+            
+            medio = (inicio + fin)/2; 
+            
+            codigoEnPosicion = bd.getProveedores().obtenerObj(medio).getCodigo();
+            
+            if (codIngresado  == codigoEnPosicion) {
+                
+                existe = medio; 
+                break;
+                
+            }else if(codIngresado > codigoEnPosicion){
+            
+                inicio = medio + 1; 
+            }else{
+                
+                fin = medio -1 ; 
+            }
+        }
+        
+        return existe; 
+      
+    }
+    
+
+    
+    public long verSiCodigoProveedorIngresadoNoExiste(String msj) { //implementar busqueda binaria
+
+        int existe;
+        long codIngresado;
+        do {
+            existe = -1;
+            codIngresado = LE.leerLong(msj);
+
+            existe = recorreArrayProveedorBuscando(existe, codIngresado); 
+
+        } while (existe != -1);
+
+        return codIngresado;
+    }
+    
+    public void registraProveedor() {
+
+        long codProveedor = verSiCodigoProveedorIngresadoNoExiste("Ingrese el codigo del proveedor"); 
+        String nombreEmpresa = ingresaValidaCadena("Ingrese el nombre de la empresa proveedora");
+        Proveedor proveedor = new Proveedor(codProveedor, nombreEmpresa);
+        bd.getProveedores().agregar(proveedor);
+
+        LE.mostrarInformacion("Proveedor Registrado y guardado correctamente");
+    }
+    
+    public Administrador obtenerAdmin() {
+            return bd.getAdministradorUnico();
+    }
+    
+   
+    
+    
+    public void registrarseAdministrador() {
+        
+        //datos a  ingresar para administrador
         String nombre, apellido, numDNI, fechaNacimiento; 
-        long codAdmin = 0; 
+        long codAdmin = 0; //inicializamos con 0 porque solo habrá un administrador en el sistema
         
         LE.mostrarInformacion("Creando cuenta de administrador unico");
         
-        nombre = LE.leerString("Ingrese el nombre"); 
-        apellido = LE.leerString("Ingrese el apellido"); 
-        numDNI = LE.leerString("Ingrese el numero de DNI"); 
-        fechaNacimiento = LE.leerString("Ingrese la fecha de nacimiento"); 
+        nombre = ingresaValidaCadena("Ingrese el nombre"); 
+        apellido = ingresaValidaCadena("Ingresa el apellido"); 
+        numDNI = ingresaValidaDNI(); 
+        fechaNacimiento = ingresaValidaFechaNac("Ingrese la fecha de nacimiento"); 
         
-        //tipo de usuario
-        
+        //datos a  ingresar para usuario del administrador
         String nombreUsuario, contraseniaUsu; 
         String  rol= "Administrador"; 
-        long codUsuario = 0; 
+        long codUsuario = bd.getUsuarios().getContador(); 
 
-        nombreUsuario = LE.leerString("Ingrese el nombre de ususario");
+        nombreUsuario = LE.leerString("Ingrese el nombre de usuario");
         contraseniaUsu = LE.leerString("Ingrese la contraseña");
     
         Usuario usu = new Usuario(codUsuario, nombreUsuario, contraseniaUsu, rol); 
+        //guardando usuario  en la base de datos
+        bd.getUsuarios().agregar(usu);
+        
         Administrador  admin= new Administrador(codAdmin, numDNI, fechaNacimiento, usu, nombre, apellido); 
-        
-        controladora.creaAdmin(admin);
-    }
-
-    public void mostrarDatosAdministrador(){
-        LE.mostrarInformacion(controladora.obtenerAdmin( ).toString());
-        
-    }
-
-    private void modificaDatosAdministrador(){
-        
-        
+        //guardando administrador en la base de datos
+        bd.setAdministradorUnico(admin);
     }
     
+
     
+    public String ingresaValidaFechaNac(String msj) {
+        //datos a ingresar
+        int anio, mes, dia;
+        String fecha;
+        
+        LE.mostrarInformacion(msj);
+        do {
+            anio = LE.leerInt("Ingrese el año");
+        } while (anio < 1900);
+
+        do {
+            mes = LE.leerInt("Ingrese el mes 1 - 12");
+        } while (mes < 1 || mes > 12);
+
+        do {
+            dia = LE.leerInt("Ingrese numero de dia");
+        } while (dia < 0 || dia > 31);
+
+        fecha = anio + "/" + mes + "/" + dia;
+        return fecha;
+    }
     
+    public String ingresaValidaDNI() {
+        int numDNI;
+        String numDNIGuardar;
+        do {
 
-}
+            numDNI = LE.leerInt("Ingrese el numero de DNI (numero de 8 digitos)");
+            numDNIGuardar = String.valueOf(numDNI);
+            if (numDNIGuardar.length() > 8 || numDNIGuardar.length() < 8) {
+                LE.mostrarAdvertencia("Numero de DNI no valido");
+            }
+        } while (numDNIGuardar.length() > 8 || numDNIGuardar.length() < 8);
+        return numDNIGuardar;
+    }
+    
+    public String ingresaValidaCadena(String msj) {
+        String nombreNuevo;
+        do {
+            nombreNuevo = LE.leerString(msj);
 
+        } while (nombreNuevo.length() < 2);
+        return nombreNuevo;
+    }
+    
+    public int getDetectaRegistroAdminUnico() {
+        return detectaRegistroAdminUnico;
+    }
 
+    public void setDetectaRegistroAdminUnico(int detectaRegistroAdminUnico) {
+        this.detectaRegistroAdminUnico = detectaRegistroAdminUnico;
+    }
 
+ 
 }
