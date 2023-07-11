@@ -1,6 +1,6 @@
+
 package controladora;
 
-import baseDeDatos.ListaDinamica;
 import baseDeDatos.SimuladorBaseDeDatos;
 import biblioteca.LE;
 import java.time.LocalDateTime;
@@ -17,13 +17,13 @@ public class Controlador {
     //atributos
     private SimuladorBaseDeDatos bd; 
     private int detectaRegistroAdminUnico;
-    private long codigoClienteSesionActual; 
+    private int indiceClienteSesionActual; 
     
     //constructor
     public Controlador() {
         bd = new SimuladorBaseDeDatos(); 
         detectaRegistroAdminUnico = 0; 
-        codigoClienteSesionActual = 0; 
+        indiceClienteSesionActual = 0; 
     }
 
     //metodos
@@ -31,10 +31,9 @@ public class Controlador {
     public void mostrarListaProductosComprados() {
 
       
-        int indiceCliente = traeIndiceClienteActualMediante(codigoClienteSesionActual);
 
         //trayendo la cantidad de compras que ha realizado el cliente actual
-        int contComprasDelCliente = bd.getClientes().obtenerObj(indiceCliente).getCompras().getContador();
+        int contComprasDelCliente = bd.getClientes().obtenerObj(indiceClienteSesionActual).getCompras().getContador();
         //si no hay compras
         if (contComprasDelCliente == 0) {
 
@@ -48,17 +47,24 @@ public class Controlador {
             double precioProductoComprado;
             String fechaProductoComprado;
             String historial = "";
+            
+            Cliente cliente  = bd.getClientes().obtenerObj(indiceClienteSesionActual); 
+            Compra compra;  
+            
             //añadiendo  cada compra a la lista de compras
             for (int i = 0; i <  contComprasDelCliente; i++) {
+                
+
+                compra = cliente.getCompras().obtenerObj(i); 
 
                 //trayendo codigo del producto comprado por el cliente
-                codigoProductoComprado = bd.getClientes().obtenerObj(indiceCliente).getCompras().obtenerObj(i).getProducto().getCodigo();
+                codigoProductoComprado = compra.getProducto().getCodigo();
                 //trayendo nombre del producto comprado por el cliente
-                nombreProductoComprado = bd.getClientes().obtenerObj(indiceCliente).getCompras().obtenerObj(i).getProducto().getNombre();
+                nombreProductoComprado = compra.getProducto().getNombre();
                 //trayendo el precio del producto comprado por el cliente
-                precioProductoComprado = bd.getClientes().obtenerObj(indiceCliente).getCompras().obtenerObj(i).getProducto().getPrecio();
+                precioProductoComprado = compra.getProducto().getPrecio();
                 //trayendo la fecha de compra del producto comprado
-                fechaProductoComprado = bd.getClientes().obtenerObj(indiceCliente).getCompras().obtenerObj(i).getProducto().getFechaLanzamiento();
+                fechaProductoComprado = compra.getProducto().getFechaLanzamiento();
                 //
 
                 historial += "\n<<Compra N#" + (i + 1) + ">> "
@@ -72,7 +78,7 @@ public class Controlador {
 
     }
     
-    
+   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     public void realizaCompra() {
         
         String listaInventario; 
@@ -80,7 +86,9 @@ public class Controlador {
         
         //ingresa codigo del pructo que desea comprar
         long codProducto = verSiCodigoProductoIngresadoExiste(listaInventario + "\n*************************" + "\nColocar el código del producto a comprar"); //comprueva que el producto exista en la lista de productos
-        int indiceProducto = traeIndiceProductoMediante(codProducto); 
+        
+        //traemos el indice donde se encuentra el juego o producto con ese codigo especifico
+        int indiceProducto =  bd.getProductos().recorreArrayObjetoBuscando(codProducto, -1);  
         //si el stock del producto que deseas comprar es suficiente
         if (bd.getProductos().obtenerObj(indiceProducto).getStock() > 1) {
 
@@ -90,11 +98,10 @@ public class Controlador {
             //si quiere realizar la compra
             if (rpta == 0) {
                 
-                int indiceCliente = traeIndiceClienteActualMediante(codigoClienteSesionActual); 
-                
-                double saldoActualCliente = bd.getClientes().obtenerObj(indiceCliente).getSaldo(); 
+                /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                double saldoActualCliente = bd.getClientes().obtenerObj(indiceClienteSesionActual).getSaldo(); 
                 double precioDelProductoAComprar = bd.getProductos().obtenerObj(indiceProducto).getPrecio(); 
-
+                ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
                 // si el saldo del cliente actual es menor al precio del producto 
                 if (saldoActualCliente < precioDelProductoAComprar) {
 
@@ -105,10 +112,11 @@ public class Controlador {
 
                     //realizando la compra (actualizacion de saldo del cliente)
                     double nuevoSaldo = saldoActualCliente - precioDelProductoAComprar;
-                    bd.getClientes().obtenerObj(indiceCliente).setSaldo(nuevoSaldo);
+                    
+                    bd.getClientes().obtenerObj(indiceClienteSesionActual).setSaldo(nuevoSaldo);
                     
                     //disminuyendo stock del producto (actualizacion del stock del producto)
-                    bd.getProductos().obtenerObj(indiceProducto).setStock(bd.getProductos().obtenerObj(indiceCliente).getStock() - 1);
+                    bd.getProductos().obtenerObj(indiceProducto).setStock(bd.getProductos().obtenerObj(indiceProducto).getStock() - 1);
                     
                     //mostrando saldo actual del cliente
                     System.out.println("Saldo actual cliente: " + nuevoSaldo);
@@ -119,7 +127,7 @@ public class Controlador {
                     long codigoCompra = bd.getCompras().getContador(); 
                     LocalDateTime fechaCompra = LocalDateTime.now();
                     String fechaCompraStr = String.valueOf(fechaCompra.getYear() + "/" + fechaCompra.getMonth() + "/" + fechaCompra.getDayOfMonth() + "---" + fechaCompra.getHour() + ":" + fechaCompra.getMinute() + ":" + fechaCompra.getSecond());
-                    Cliente cliente = bd.getClientes().obtenerObj(indiceCliente);
+                    Cliente cliente = bd.getClientes().obtenerObj(indiceClienteSesionActual);
                     Productos producto = bd.getProductos().obtenerObj(indiceProducto);
 
                     //guardando datos ingresados en un objetod de tipo compra
@@ -128,7 +136,7 @@ public class Controlador {
                     bd.getCompras().agregar(compra);
                     
                     //guardando la compra en el registro de compras el cliente
-                    bd.getClientes().obtenerObj(indiceCliente).getCompras().agregar(compra);
+                    bd.getClientes().obtenerObj(indiceClienteSesionActual).getCompras().agregar(compra);
 
                     LE.mostrarInformacion("Producto comprado");
 
@@ -152,16 +160,14 @@ public class Controlador {
         
         int existe;
         long codIngresado;
-        ListaDinamica<Productos> productos; 
-        int contProductos; 
+
         
         do {
             existe = -1;
             codIngresado = LE.leerLong(msj);
             
-            productos = bd.getProductos();
-            contProductos = bd.getProductos().getContador(); 
-            existe = recorreArrayObjetoBuscando(productos, contProductos, codIngresado, existe); 
+
+            existe = bd.getProductos().recorreArrayObjetoBuscando(codIngresado, existe); 
             //recorreProductosBuscando(codIngresado, existe);
             
             if (existe == -1) {
@@ -173,101 +179,6 @@ public class Controlador {
         return codIngresado;
     }
     
-    //////////////////////////////////////////////////////////////////////////////////////////////////
-    public <T> int recorreArrayObjetoBuscando(ListaDinamica<T> lista, int contObjetos,  long codIngresado, int existe){
-        
-        //busqueda binaria
-        int inicio = 0; 
-        int medio; 
-        int fin = contObjetos - 1 ; 
-        
-        long codigoEnPosicion; 
-        
-        while (inicio <= fin) {            
-            
-            medio = (inicio + fin)/2; 
-            
-            codigoEnPosicion = Long.parseLong(lista.obtenerObj(medio).toString()); 
-            
-            if (codIngresado  == codigoEnPosicion) {
-                
-                existe = medio; 
-                break;
-                
-            }else if(codIngresado > codigoEnPosicion){
-            
-                inicio = medio + 1; 
-            }else{
-                
-                fin = medio -1 ; 
-            }
-        }
-        
-        return 1; 
-    }
-    
-    
-    public <T> void ordenaArrayObjetosPorCodigo(T[] objetos, int contObjetos){
-        //ordenamiento por seleccion 
-        int posMin; 
-        for (int i = 0; i < contObjetos -1; i++) {
-            posMin = i; 
-            for (int j = 0; j < 10; j++) {
-                
-            }
-        }
-        
-        
-    }
-    //////////////////////////////////////////////////////////////////////////////////////////////////
-    
-    public int recorreProductosBuscando(long codIngresado, int existe){// implementar busqueda binaria
-        
-        //busqueda binaria
-        int inicio = 0; 
-        int medio; 
-        int fin = bd.getProductos().getContador() -1; 
-        
-        long codigoEnPosicion; 
-        
-        while (inicio <= fin) {            
-            
-            medio = (inicio + fin)/2; 
-            
-            codigoEnPosicion = bd.getProductos().obtenerObj(medio).getCodigo();
-            
-            if (codIngresado  == codigoEnPosicion) {
-                
-                existe = medio; 
-                break;
-                
-            }else if(codIngresado > codigoEnPosicion){
-            
-                inicio = medio + 1; 
-            }else{
-                
-                fin = medio -1 ; 
-            }
-        }
-        
-        return existe; 
-    }
-    
-    public int traeIndiceProductoMediante(long codigoProveedorBuscar){
-        
-        int indice = 0; 
-        long codigoDeCadaProducto; 
-        
-        for (int i = 0; i <  bd.getProductos().getContador() ; i++) {
-            codigoDeCadaProducto = bd.getProductos().obtenerObj(i).getCodigo(); 
-            if (codigoDeCadaProducto == codigoProveedorBuscar) {
-                indice = i; 
-            }
-        }
-        return indice; 
-    }
-    
-  
     
     public int traeContProductos(){
         return bd.getProductos().getContador(); 
@@ -275,40 +186,30 @@ public class Controlador {
     
     public void saldo() {
         
-        int indice = traeIndiceClienteActualMediante(codigoClienteSesionActual); 
         
         double saldoAumento = LE.leerDouble("Ingrese el ingrese cuanto dinero quiere recargar a su cuenta");
-        double saldoActual =  bd.getClientes().obtenerObj(indice).getSaldo(); 
+        double saldoActual =  bd.getClientes().obtenerObj(indiceClienteSesionActual).getSaldo(); 
         
         //actualizando saldo
-        bd.getClientes().obtenerObj(indice).setSaldo(saldoActual + saldoAumento);
-        
+        bd.getClientes().obtenerObj(indiceClienteSesionActual).setSaldo(saldoActual + saldoAumento);
     }
 
-    private int traeIndiceClienteActualMediante(long codigoClienteSesionActual) {
-        
-        int indice = 0;  
-        
-        for (int i = 0; i < bd.getClientes().getContador(); i++) {
-            if (codigoClienteSesionActual == bd.getClientes().obtenerObj(i).getCodigo()) {
-                indice = i; 
-            }
-        }
-        return indice;  
-    }
+
     
-    public int verificaSiUsuarioExisteEnBaseDatos(String nombreBuscar, String contraseniaBuscar) {
+    
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////usuario
+    public int verificarSiEnBDHayClienteConEsteUsuario(String nombreBuscar, String contraseniaBuscar) {
 
         int existe = -1;
 
-        for (int i = 0; i < bd.getUsuarios().getContador() ; i++) {
+        for (int i = 0; i < bd.getClientes().getContador() ; i++) {
 
-            String nombreAlmacenado = bd.getUsuarios().obtenerObj(i).getNombreUsuario();
-            String contrasenniaAlmacenada = bd.getUsuarios().obtenerObj(i).getContraseña() ;
+            String nombreAlmacenado = bd.getClientes().obtenerObj(i).getUsu().getNombreUsuario();
+            String contrasenniaAlmacenada = bd.getClientes().obtenerObj(i).getUsu().getContraseña();
 
             if (nombreAlmacenado.equals(nombreBuscar) && contrasenniaAlmacenada.equals(contraseniaBuscar)) {
                 existe = i;
-                codigoClienteSesionActual = bd.getUsuarios().obtenerObj(i).getCodigo();  //guardando  el  inicio de sesion actual
+                
                 break;
             }
         }
@@ -316,6 +217,8 @@ public class Controlador {
         //si no hay un usuario con la contraseña y correo indicados
         if (existe == -1) {
             LE.mostrarAdvertencia("Nombre de usuario o contraseña incorrectos");
+        }else{
+            indiceClienteSesionActual = existe; 
         }
         
         return existe;
@@ -359,6 +262,7 @@ public class Controlador {
 
         String nombreRegistrar;
         int existe;
+        
         do {
             existe = -1;
             nombreRegistrar = ingresaValidaCadena("Ingrese el nombre de usuario para el cliente a registrar"); 
@@ -384,6 +288,7 @@ public class Controlador {
 
     
     public void muestraRegistroDeVentas() {
+        
         if (bd.getCompras().getContador() == 0) {
             LE.mostrarAdvertencia("Aun no se ha realizado ninguna compra");
         } else {
@@ -403,8 +308,12 @@ public class Controlador {
         }
     }
     
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
     public  String traeListaProductos(){
+        
         String listaInventario = ""; 
+        
         for (int i = 0; i < bd.getProductos().getContador(); i++) {
 
             listaInventario += "\n*******************"
@@ -487,7 +396,7 @@ public class Controlador {
             existe = -1;
             codIngresado = LE.leerLong(msj);
 
-            existe = recorreProductosBuscando(codIngresado, existe);
+            existe = bd.getProductos().recorreArrayObjetoBuscando(codIngresado, existe);
 
         } while (existe != -1);
 
@@ -508,8 +417,11 @@ public class Controlador {
         
         int indice = 0; 
         long codigoDeCadaProveedor; 
+        
         for (int i = 0; i < bd.getProveedores().getContador() ; i++) {
+            
             codigoDeCadaProveedor = bd.getProveedores().obtenerObj(i).getCodigo(); 
+            
             if (codigoDeCadaProveedor == codigoProveedorBuscar) {
                 indice = i; 
             }
@@ -542,46 +454,12 @@ public class Controlador {
             existe = -1;
             codIngresado = LE.leerLong(msj);
 
-            existe = recorreArrayProveedorBuscando(existe, codIngresado); 
+            existe =  bd.getProveedores().recorreArrayObjetoBuscando(codIngresado, existe); 
             
             //si el codigo no existe, se vuelve a pedir el ingreso de codigo
         } while (existe == -1);
 
         return codIngresado;
-    }
-    
-    public int recorreArrayProveedorBuscando(int existe, long codIngresado){
-        
-        
-        //busqueda binaria
-        int inicio = 0; 
-        int medio; 
-        int fin = bd.getProveedores().getContador() -1; 
-        
-        long codigoEnPosicion; 
-        
-        while (inicio <= fin) {            
-            
-            medio = (inicio + fin)/2; 
-            
-            codigoEnPosicion = bd.getProveedores().obtenerObj(medio).getCodigo();
-            
-            if (codIngresado  == codigoEnPosicion) {
-                
-                existe = medio; 
-                break;
-                
-            }else if(codIngresado > codigoEnPosicion){
-            
-                inicio = medio + 1; 
-            }else{
-                
-                fin = medio -1 ; 
-            }
-        }
-        
-        return existe; 
-      
     }
     
 
@@ -590,11 +468,12 @@ public class Controlador {
 
         int existe;
         long codIngresado;
+        
         do {
             existe = -1;
             codIngresado = LE.leerLong(msj);
 
-            existe = recorreArrayProveedorBuscando(existe, codIngresado); 
+            existe = bd.getProveedores().recorreArrayObjetoBuscando(codIngresado, existe); 
 
         } while (existe != -1);
 
@@ -605,6 +484,7 @@ public class Controlador {
 
         long codProveedor = verSiCodigoProveedorIngresadoNoExiste("Ingrese el codigo del proveedor"); 
         String nombreEmpresa = ingresaValidaCadena("Ingrese el nombre de la empresa proveedora");
+        
         Proveedor proveedor = new Proveedor(codProveedor, nombreEmpresa);
         bd.getProveedores().agregar(proveedor);
 
